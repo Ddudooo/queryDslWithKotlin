@@ -23,7 +23,7 @@ class QuerydslApplicationTests(
         em.persist(hello)
 
         val query : JPAQueryFactory = JPAQueryFactory(em)
-        val qHello = QHello("h")
+        val qHello = QHello.hello
 
         val result = query.selectFrom(qHello)
             .fetchOne()
