@@ -18,6 +18,7 @@ class QueryDslBasicTest(
     @Autowired
     private val em : EntityManager
 ) {
+    val queryFactory = JPAQueryFactory(em)
 
     @BeforeEach
     fun before() {
@@ -52,12 +53,24 @@ class QueryDslBasicTest(
 
     @Test
     fun startQueryDsl(){
-        val jpaQueryFactory = JPAQueryFactory(em)
-        val fetchOne = jpaQueryFactory.select(member)
+        val fetchOne = queryFactory.select(member)
             .from(member)
             .where(member.username.eq("member1"))
             .fetchOne()
 
         assertThat(fetchOne?.username).isEqualTo("member1")
+    }
+
+    @Test
+    fun search() {
+        val fetchOne = queryFactory.selectFrom(member)
+            .where(
+                member.username.eq("member1"),
+                member.age.eq(10)
+            )
+            .fetchOne()
+
+        assertThat(fetchOne?.username).isEqualTo("member1")
+        assertThat(fetchOne?.age).isEqualTo(10)
     }
 }
