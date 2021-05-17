@@ -9,13 +9,13 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 @Entity
-class Member(username : String, age: Int=0) {
+class Member(username: String?, age: Int=0) {
     @Id
     @GeneratedValue
     @Column(name = "member_id")
     var id : Long? = null
     var age : Int = age
-    var username : String = username
+    var username : String? = username
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")

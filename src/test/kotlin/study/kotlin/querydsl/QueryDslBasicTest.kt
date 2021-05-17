@@ -99,4 +99,41 @@ class QueryDslBasicTest(
             .selectFrom(member)
             .fetchCount()
     }
+
+    /**
+     * 회원 정렬 순서
+     * 1. 회원 나이 내림차순(desc)
+     * 2. 회원 이름 올림차순(asc)
+     * 2-1. 이름이 없을시 마지막 출력 (null last)
+     */
+    @Test
+    fun sort(){
+        em.persist(Member(null, 100))
+        em.persist(Member("member5", 100))
+        em.persist(Member("member6", 100))
+
+        val result = queryFactory
+            .selectFrom(member)
+            .where(member.age.eq(100))
+            .orderBy(member.age.desc(), member.username.asc().nullsLast())
+            .fetch()
+
+        for((index, find) in result.withIndex()){
+            if(index==0){
+                //member5
+                assertThat(find.username).isEqualTo("member5")
+                assertThat(find.age).isEqualTo(100)
+            }
+            if(index==1){
+                //member6
+                assertThat(find.username).isEqualTo("member6")
+                assertThat(find.age).isEqualTo(100)
+            }
+            if(index==2){
+                //nullMember
+                assertThat(find.username).isNull()
+                assertThat(find.age).isEqualTo(100)
+            }
+        }
+    }
 }
