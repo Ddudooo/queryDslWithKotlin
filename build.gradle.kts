@@ -12,6 +12,7 @@ plugins {
 }
 
 val queryDsl = "4.4.0"
+val p6spy = "1.7.1"
 
 group = "study.kotlin"
 version = "0.0.1-SNAPSHOT"
@@ -33,6 +34,9 @@ dependencies {
     implementation("com.querydsl:querydsl-jpa:${queryDsl}")
     kapt("com.querydsl:querydsl-apt:${queryDsl}:jpa")
     kaptTest("com.querydsl:querydsl-apt:${queryDsl}:jpa")
+
+    //jpa 파라미터 로깅용
+    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:${p6spy}")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("com.h2database:h2")
