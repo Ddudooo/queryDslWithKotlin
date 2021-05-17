@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import study.kotlin.querydsl.entity.Member
 import study.kotlin.querydsl.entity.QMember.member
+import study.kotlin.querydsl.entity.QTeam.team
 import study.kotlin.querydsl.entity.Team
 import javax.persistence.EntityManager
 
@@ -162,5 +163,48 @@ class QueryDslBasicTest(
         assertThat(result.limit).isEqualTo(2)
         assertThat(result.offset).isEqualTo(1)
         assertThat(result.results.size).isEqualTo(2)
+    }
+
+    @Test
+    fun aggregation(){
+        val results = queryFactory
+            .select(
+                member.count(),
+                member.age.sum(),
+                member.age.avg(),
+                member.age.max(),
+                member.age.min()
+            )
+            .from(member)
+            .fetch()
+
+        val tuple = results[0]
+        assertThat(tuple[member.count()]).isEqualTo(4)
+        assertThat(tuple[member.age.sum()]).isEqualTo(100)
+        assertThat(tuple[member.age.avg()]).isEqualTo(25.0)
+        assertThat(tuple[member.age.max()]).isEqualTo(40)
+        assertThat(tuple[member.age.min()]).isEqualTo(10)
+
+    }
+
+    /**
+     * 팀의 이름과 각 팀의 평균 연령
+     */
+    @Test
+    fun group() {
+        val result = queryFactory
+            .select(team.name, member.age.avg())
+            .from(member)
+            .join(member.team, team)
+            .groupBy(team.name)
+            .fetch()
+
+        val teamA = result[0]
+        val teamB = result[1]
+        assertThat(teamA[team.name]).isEqualTo("teamA")
+        assertThat(teamA[member.age.avg()]).isEqualTo(15.0)
+
+        assertThat(teamB[team.name]).isEqualTo("teamB")
+        assertThat(teamB[member.age.avg()]).isEqualTo(35.0)
     }
 }
