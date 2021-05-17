@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import study.kotlin.querydsl.entity.Member
-import study.kotlin.querydsl.entity.QMember
+import study.kotlin.querydsl.entity.QMember.member
 import study.kotlin.querydsl.entity.Team
 import javax.persistence.EntityManager
 
@@ -53,10 +53,9 @@ class QueryDslBasicTest(
     @Test
     fun startQueryDsl(){
         val jpaQueryFactory = JPAQueryFactory(em)
-        val m = QMember("m")
-        val fetchOne = jpaQueryFactory.select(m)
-            .from(m)
-            .where(m.username.eq("member1"))
+        val fetchOne = jpaQueryFactory.select(member)
+            .from(member)
+            .where(member.username.eq("member1"))
             .fetchOne()
 
         assertThat(fetchOne?.username).isEqualTo("member1")
