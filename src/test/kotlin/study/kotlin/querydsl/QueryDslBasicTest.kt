@@ -136,4 +136,31 @@ class QueryDslBasicTest(
             }
         }
     }
+
+    @Test
+    fun paging1() {
+        val result = queryFactory
+            .selectFrom(member)
+            .orderBy(member.username.desc())
+            .offset(1)
+            .limit(2)
+            .fetch()
+
+        assertThat(result.size).isEqualTo(2)
+    }
+
+    @Test
+    fun paging2() {
+        val result = queryFactory
+            .selectFrom(member)
+            .orderBy(member.username.desc())
+            .offset(1)
+            .limit(2)
+            .fetchResults()
+
+        assertThat(result.total).isEqualTo(4)
+        assertThat(result.limit).isEqualTo(2)
+        assertThat(result.offset).isEqualTo(1)
+        assertThat(result.results.size).isEqualTo(2)
+    }
 }
