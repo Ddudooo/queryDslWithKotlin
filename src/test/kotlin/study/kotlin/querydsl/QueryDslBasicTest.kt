@@ -73,4 +73,30 @@ class QueryDslBasicTest(
         assertThat(fetchOne?.username).isEqualTo("member1")
         assertThat(fetchOne?.age).isEqualTo(10)
     }
+
+    @Test
+    fun resultFetch() {
+        /*val fetch = queryFactory
+            .selectFrom(member)
+            .fetch()
+
+        val fetchOne = queryFactory
+            .selectFrom(member)
+            .fetchOne()
+
+        val fetchFirst = queryFactory
+            .selectFrom(member)
+            .fetchFirst()*/
+
+        /*val results = queryFactory
+            .selectFrom(member)
+            .fetchResults()
+
+        results.total
+        results.results*/
+
+        val total = queryFactory
+            .selectFrom(member)
+            .fetchCount()
+    }
 }
