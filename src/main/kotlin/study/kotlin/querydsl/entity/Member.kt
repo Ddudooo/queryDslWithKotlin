@@ -31,4 +31,8 @@ class Member(username: String?, age: Int=0) {
         this.team = team
         team.members.add(this)
     }
+
+    override fun toString(): String {
+        return "Member(id=$id, age=$age, username=$username)"
+    }
 }

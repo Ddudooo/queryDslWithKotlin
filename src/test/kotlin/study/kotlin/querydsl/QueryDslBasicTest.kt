@@ -207,4 +207,67 @@ class QueryDslBasicTest(
         assertThat(teamB[team.name]).isEqualTo("teamB")
         assertThat(teamB[member.age.avg()]).isEqualTo(35.0)
     }
+
+    @Test
+    fun join() {
+        val fetch = queryFactory
+            .selectFrom(member)
+            .join(member.team, team)
+            .where(team.name.eq("teamA"))
+            .fetch()
+
+        assertThat(fetch)
+            .extracting("username")
+            .containsExactly("member1","member2")
+    }
+
+    @Test
+    fun theta_join(){
+        em.persist(Member("teamA"))
+        em.persist(Member("teamB"))
+        em.persist(Member("teamC"))
+
+        val result = queryFactory
+            .select(member)
+            .from(member, team)
+            .where(member.username.eq(team.name))
+            .fetch()
+
+        assertThat(result)
+            .extracting("username")
+            .containsExactly("teamA","teamB")
+    }
+
+    @Test
+    fun join_on_filtering(){
+        val result = queryFactory
+            .select(member, team)
+            .from(member)
+            .join(member.team, team)
+            //.on(team.name.eq("teamA"))
+            .where(team.name.eq("teamA"))
+            .fetch()
+
+        for(tuple in result){
+            println("tuple = ${tuple}")
+        }
+    }
+
+    @Test
+    fun join_on_no_releation(){
+        em.persist(Member("teamA"))
+        em.persist(Member("teamB"))
+        em.persist(Member("teamC"))
+
+        val result = queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(team).on(member.username.eq(team.name))
+            .where(member.username.eq(team.name))
+            .fetch()
+
+        for(tuple in result){
+            println("tuple = ${tuple}")
+        }
+    }
 }
