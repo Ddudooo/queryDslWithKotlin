@@ -1,5 +1,7 @@
 package study.kotlin.querydsl
 
+import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.JPAExpressions
@@ -10,6 +12,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
+import study.kotlin.querydsl.dto.MemberDto
+import study.kotlin.querydsl.dto.QMemberDto
+import study.kotlin.querydsl.dto.UserDto
 import study.kotlin.querydsl.entity.Member
 import study.kotlin.querydsl.entity.QMember
 import study.kotlin.querydsl.entity.QMember.member
@@ -434,5 +439,141 @@ class QueryDslBasicTest(
         for(string in result) {
             println("tuple = ${string}")
         }
+    }
+
+    @Test
+    fun simpleProjection(){
+        val result = queryFactory
+            .select(member.username)
+            .from(member)
+            .fetch()
+
+        for(string in result){
+            println("username = ${string}")
+        }
+    }
+
+    @Test
+    fun tupleProjection() {
+        val result = queryFactory
+            .select(member.username, member.age)
+            .from(member)
+            .fetch()
+        for(tuple in result){
+            println("username = ${tuple[member.username]}, age = ${tuple[member.age]}")
+        }
+    }
+
+    @Test
+    fun findDtoByJPQL() {
+        val resultList = em.createQuery(
+            "select new study.kotlin.querydsl.dto.MemberDto(m.username, m.age) " +
+                    "from Member m"
+        )
+            .resultList
+
+        for(memberDto in resultList){
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun findDtoByQueryDSL() {
+        val result = queryFactory
+            .select(Projections.bean(
+                MemberDto::class.java,
+                member.username,
+                member.age
+            ))
+            .from(member)
+            .fetch()
+
+        for(memberDto in result) {
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun findDtoByField() {
+        val result = queryFactory
+            .select(Projections.fields(
+                MemberDto::class.java,
+                member.username,
+                member.age
+            ))
+            .from(member)
+            .fetch()
+
+        for(memberDto in result) {
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun findDtoByConstructor() {
+        val result = queryFactory
+            .select(Projections.constructor(
+                MemberDto::class.java,
+                member.username,
+                member.age
+            ))
+            .from(member)
+            .fetch()
+
+        for(memberDto in result) {
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun findDtoByUser() {
+        val result = queryFactory
+            .select(Projections.fields(
+                UserDto::class.java,
+                member.username.`as`("name"),
+                member.age
+            ))
+            .from(member)
+            .fetch()
+
+        for(memberDto in result) {
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun findDtoByQueryProjection() {
+        val result = queryFactory
+            .select(QMemberDto(member.username, member.age))
+            .from(member)
+            .fetch()
+
+        for(memberDto in result) {
+            println(memberDto)
+        }
+    }
+
+    @Test
+    fun dynamicQueryBooleanBuilder() {
+        val usernameParam = "member1"
+        val ageParam = null
+
+        val result: List<Member> = searchMember1(usernameParam, ageParam)
+        assertThat(result.size).isEqualTo(1)
+    }
+
+    private fun searchMember1(usernameCond: String?, ageCond: Int?): List<Member> {
+        val builder = BooleanBuilder()
+        if(usernameCond != null){
+            builder.and(member.username.eq(usernameCond))
+        }
+        if(ageCond != null){
+            builder.and(member.age.eq(ageCond))
+        }
+
+        return queryFactory
+            .selectFrom(member)
+            .where(builder)
+            .fetch()
     }
 }
