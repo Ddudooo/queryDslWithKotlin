@@ -1,6 +1,7 @@
 package study.kotlin.querydsl
 
 import com.querydsl.core.types.dsl.CaseBuilder
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.assertj.core.api.Assertions.assertThat
@@ -408,6 +409,30 @@ class QueryDslBasicTest(
 
         for(string in result){
             println("string = ${string}")
+        }
+    }
+
+    @Test
+    fun constant() {
+        val result = queryFactory
+            .select(member.username, Expressions.constant("A"))
+            .from(member)
+            .fetch()
+
+        for(tuple in result) {
+            println("tuple = ${tuple}")
+        }
+    }
+
+    @Test
+    fun concat() {
+        val result = queryFactory
+            .select(member.username.concat("_").concat(member.age.stringValue()))
+            .from(member)
+            .fetch()
+
+        for(string in result) {
+            println("tuple = ${string}")
         }
     }
 }
