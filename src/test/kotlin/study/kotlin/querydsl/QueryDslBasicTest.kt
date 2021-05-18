@@ -613,4 +613,39 @@ class QueryDslBasicTest(
     private fun allEq(usernameCond: String?, ageCond: Int?) : BooleanExpression?{
         return usernameEq(usernameCond)?.and(ageEq(ageCond))
     }
+
+    @Test
+    fun bulkUpdate() {
+        val count = queryFactory
+            .update(member)
+            .set(member.username, "비회원")
+            .where(member.age.lt(28))
+            .execute()
+
+        em.flush()
+        em.clear()
+
+        val result = queryFactory.selectFrom(member)
+            .fetch()
+
+        for(member in result) {
+            println(member)
+        }
+    }
+
+    @Test
+    fun bulkAdd() {
+        queryFactory
+            .update(member)
+            .set(member.age, member.age.add(1))
+            .execute()
+    }
+
+    @Test
+    fun bulkDelete() {
+        queryFactory
+            .delete(member)
+            .where(member.age.gt(18))
+            .execute()
+    }
 }
