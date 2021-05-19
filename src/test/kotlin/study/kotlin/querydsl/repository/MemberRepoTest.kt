@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import study.kotlin.querydsl.dto.MemberSearchCondition
 import study.kotlin.querydsl.entity.Member
+import study.kotlin.querydsl.entity.QMember.member
 import study.kotlin.querydsl.entity.Team
 import javax.persistence.EntityManager
 
@@ -85,5 +86,29 @@ class MemberRepoTest {
         assertThat(result.size).isEqualTo(3)
         assertThat(result.content).extracting("username")
             .containsExactly("member1","member2","member3")
+    }
+
+    @Test
+    fun queryDslPredicateExecutorTest() {
+        val teamA = Team("teamA")
+        val teamB = Team("teamB")
+        em.persist(teamA)
+        em.persist(teamB)
+
+        val member1 = Member("member1", 10, teamA)
+        val member2 = Member("member2", 20, teamA)
+
+        val member3 = Member("member3", 30, teamB)
+        val member4 = Member("member4", 40, teamB)
+        em.persist(member1)
+        em.persist(member2)
+        em.persist(member3)
+        em.persist(member4)
+
+        val findAll =
+            memberRepo.findAll(member.age.between(10, 40).and(member.username.eq("member1")))
+        findAll.forEach {
+            println(it)
+        }
     }
 }
