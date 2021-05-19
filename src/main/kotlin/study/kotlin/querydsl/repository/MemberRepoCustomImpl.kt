@@ -2,11 +2,16 @@ package study.kotlin.querydsl.repository
 
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import study.kotlin.querydsl.dto.MemberSearchCondition
 import study.kotlin.querydsl.dto.MemberTeamDto
 import study.kotlin.querydsl.dto.QMemberTeamDto
 import study.kotlin.querydsl.entity.QMember
+import study.kotlin.querydsl.entity.QMember.member
 import study.kotlin.querydsl.entity.QTeam
+import study.kotlin.querydsl.entity.QTeam.team
 
 class MemberRepoCustomImpl(
     private val queryFactory: JPAQueryFactory
@@ -15,15 +20,15 @@ class MemberRepoCustomImpl(
         return queryFactory
             .select(
                 QMemberTeamDto(
-                    QMember.member.id.`as`("memberId"),
-                    QMember.member.username,
-                    QMember.member.age,
-                    QTeam.team.id.`as`("teamId"),
-                    QTeam.team.name
+                    member.id.`as`("memberId"),
+                    member.username,
+                    member.age,
+                    team.id.`as`("teamId"),
+                    team.name
                 )
             )
-            .from(QMember.member)
-            .leftJoin(QMember.member.team, QTeam.team)
+            .from(member)
+            .leftJoin(member.team, team)
             .where(
                 usernameEq(condition.username),
                 teamNameEq(condition.teamName),
@@ -31,6 +36,78 @@ class MemberRepoCustomImpl(
                 ageLoe(condition.ageLoe)
             )
             .fetch()
+    }
+
+    override fun searchPageSimple(
+        condition: MemberSearchCondition,
+        pageable: Pageable,
+    ): Page<MemberTeamDto> {
+        val results = queryFactory
+            .select(
+                QMemberTeamDto(
+                    member.id.`as`("memberId"),
+                    member.username,
+                    member.age,
+                    team.id.`as`("teamId"),
+                    team.name
+                )
+            )
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(
+                usernameEq(condition.username),
+                teamNameEq(condition.teamName),
+                ageGoe(condition.ageGoe),
+                ageLoe(condition.ageLoe)
+            )
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetchResults()
+
+        val content = results.results
+        val total = results.total
+
+        return PageImpl(content, pageable, total)
+    }
+
+    override fun searchPageComplex(
+        condition: MemberSearchCondition,
+        pageable: Pageable,
+    ): Page<MemberTeamDto> {
+        val content = queryFactory
+            .select(
+                QMemberTeamDto(
+                    member.id.`as`("memberId"),
+                    member.username,
+                    member.age,
+                    team.id.`as`("teamId"),
+                    team.name
+                )
+            )
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(
+                usernameEq(condition.username),
+                teamNameEq(condition.teamName),
+                ageGoe(condition.ageGoe),
+                ageLoe(condition.ageLoe)
+            )
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+
+        val total = queryFactory
+            .selectFrom(member)
+            .leftJoin(member.team, team)
+            .where(
+                usernameEq(condition.username),
+                teamNameEq(condition.teamName),
+                ageGoe(condition.ageGoe),
+                ageLoe(condition.ageLoe)
+            )
+            .fetchCount()
+
+        return PageImpl(content, pageable, total)
     }
 
     private fun ageLoe(ageLoeCond: Int?): BooleanExpression? {
