@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.support.PageableExecutionUtils
 import study.kotlin.querydsl.dto.MemberSearchCondition
 import study.kotlin.querydsl.dto.MemberTeamDto
 import study.kotlin.querydsl.dto.QMemberTeamDto
@@ -96,7 +97,18 @@ class MemberRepoCustomImpl(
             .limit(pageable.pageSize.toLong())
             .fetch()
 
-        val total = queryFactory
+//        val total = queryFactory
+//            .selectFrom(member)
+//            .leftJoin(member.team, team)
+//            .where(
+//                usernameEq(condition.username),
+//                teamNameEq(condition.teamName),
+//                ageGoe(condition.ageGoe),
+//                ageLoe(condition.ageLoe)
+//            )
+//            .fetchCount()
+
+        val countQuery = queryFactory
             .selectFrom(member)
             .leftJoin(member.team, team)
             .where(
@@ -105,9 +117,9 @@ class MemberRepoCustomImpl(
                 ageGoe(condition.ageGoe),
                 ageLoe(condition.ageLoe)
             )
-            .fetchCount()
 
-        return PageImpl(content, pageable, total)
+        return PageableExecutionUtils.getPage(content, pageable){countQuery.fetchCount()}
+        //return PageImpl(content, pageable, total)
     }
 
     private fun ageLoe(ageLoeCond: Int?): BooleanExpression? {
